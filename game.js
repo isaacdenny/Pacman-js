@@ -12,26 +12,26 @@ let wallSpaceWidth = oneBlockSize / 1.5;
 let wallOffset = (oneBlockSize - wallSpaceWidth) / 2;
 let wallInnerColor = "black";
 let foodColor = "#FEB897"
+let score = 0;
+let ghosts = [];
 
 const DIRECTION_RIGHT = 4;
 const DIRECTION_UP = 3;
 const DIRECTION_LEFT = 2;
 const DIRECTION_DOWN = 1;
 
-// we now create the map of the walls,
-// if 1 wall, if 0 not wall
-// 21 columns // 23 rows
+let ghostLocations = [
+    {x: 0, y: 0},
+    {x: 176, y: 0},
+    {x: 0, y: 121},
+    {x: 176, y: 121}
+]
 
 const draw = () => {
-    createRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height,
-        backgroundColor
-    );
+    createRect(0, 0, canvas.width, canvas.height, backgroundColor);
     drawWalls();
     drawFoods();
+    drawScore();
     pacman.draw();
 };
 
