@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 class Ghost {
     constructor(
         x,
@@ -25,26 +27,35 @@ class Ghost {
         this.imageWidth = imageWidth;
         this.imageHeight = imageHeight;
         this.range = range;
+        this.randomTargetIndex = parseInt((Math.random() * randomTargetsForGhosts.length).toString());
+
+        setInterval(() => {
+            this.changeRandomDirection();
+        }, 10000);
     }
 
+    changeRandomDirection() {
+        this.randomTargetIndex += 1;
+        this.randomTargetIndex %= 4;
+    }
+
+    isInRange() {
+        let xDistance = Math.abs(pacman.getMapX() - this.getMapX());
+        let yDistance = Math.abs(pacman.getMapY() - this.getMapY());
+        return Math.sqrt(xDistance * xDistance + yDistance * yDistance) <=
+            this.range;
+
+    }
     moveProcess() {
-        this.changeDirectionIfPossible();
-        if (this.checkCollision()) {
-            this.moveBackwards()
+        if (this.isInRange()) {
+            this.target = pacman;
+        } else {
+            this.target = randomTargetsForGhosts[this.randomTargetIndex];
         }
-    }
-
-    eat() {
-        for (let i = 0; i < map.length; i++) {
-            for (let j = 0; j < map[0].length; j++) {
-                if (map[i][j] === 2 &&
-                    this.getMapX() === j &&
-                    this.getMapY() === i
-                ) {
-                    map[i][j] = 3;
-                    score++;
-                }
-            }
+        this.changeDirectionIfPossible();
+        this.moveForwards();
+        if (this.checkCollision()) {
+            this.moveBackwards();
         }
     }
 
@@ -95,40 +106,113 @@ class Ghost {
         return isCollided;
     }
 
-    checkTurnCollision() {
-
-    }
-
-    checkGhostCollision() {
-    }
-
     changeDirectionIfPossible() {
-        if (this.direction === this.nextDirection) {
-            this.moveForwards()
-            if (this.checkCollision()) {
-                this.moveBackwards()
-            }
+        let tempDirection = this.direction;
+        this.direction = this.calculateNewDirection(
+            map,
+            parseInt((this.target.x / oneBlockSize).toString()),
+            parseInt((this.target.y / oneBlockSize).toString())
+        );
+        if (typeof this.direction == "undefined") {
+            this.direction = tempDirection;
             return;
         }
-
-        let tempDirection = this.direction;
-        this.direction = this.nextDirection;
-        this.moveForwards()
-        if (this.checkCollision()) {
-            this.moveBackwards()
-            this.direction = tempDirection;
-            this.moveForwards()
-        } else {
-            this.moveBackwards()
+        if (
+            this.getMapY() !== this.getMapYRightSide() &&
+            (this.direction === DIRECTION_LEFT ||
+                this.direction === DIRECTION_RIGHT)
+        ) {
+            this.direction = DIRECTION_UP;
         }
+        if (
+            this.getMapX() !== this.getMapXRightSide() &&
+            this.direction === DIRECTION_UP
+        ) {
+            this.direction = DIRECTION_LEFT;
+        }
+        this.moveForwards();
+        if (this.checkCollision()) {
+            this.moveBackwards();
+            this.direction = tempDirection;
+        } else {
+            this.moveBackwards();
+        }
+        console.log(this.direction);
     }
 
-    changeAnimationFrame() {
-        if (this.currentFrame === this.frameCount) {
-            this.currentFrame = 1;
-        } else {
-            this.currentFrame = this.currentFrame + 1;
+    calculateNewDirection(map, destX, destY) {
+        let mp = [];
+        for (let i = 0; i < map.length; i++) {
+            mp[i] = map[i].slice();
         }
+
+        let queue = [
+            {
+                x: this.getMapX(),
+                y: this.getMapY(),
+                rightX: this.getMapXRightSide(),
+                rightY: this.getMapYRightSide(),
+                moves: [],
+            },
+        ];
+        while (queue.length > 0) {
+            let popped = queue.shift();
+            if (popped.x === destX && popped.y === destY) {
+                return popped.moves[0];
+            } else {
+                mp[popped.y][popped.x] = 1;
+                let neighborList = this.addNeighbors(popped, mp);
+                for (let i = 0; i < neighborList.length; i++) {
+                    queue.push(neighborList[i]);
+                }
+            }
+        }
+
+        return 1; // direction
+    }
+
+    addNeighbors(popped, mp) {
+        let queue = [];
+        let numOfRows = mp.length;
+        let numOfColumns = mp[0].length;
+
+        if (
+            popped.x - 1 >= 0 &&
+            popped.x - 1 < numOfRows &&
+            mp[popped.y][popped.x - 1] !== 1
+        ) {
+            let tempMoves = popped.moves.slice();
+            tempMoves.push(DIRECTION_LEFT);
+            queue.push({ x: popped.x - 1, y: popped.y, moves: tempMoves });
+        }
+        if (
+            popped.x + 1 >= 0 &&
+            popped.x + 1 < numOfRows &&
+            mp[popped.y][popped.x + 1] !== 1
+        ) {
+            let tempMoves = popped.moves.slice();
+            tempMoves.push(DIRECTION_RIGHT);
+            queue.push({ x: popped.x + 1, y: popped.y, moves: tempMoves });
+        }
+        if (
+            popped.y - 1 >= 0 &&
+            popped.y - 1 < numOfColumns &&
+            mp[popped.y - 1][popped.x] !== 1
+        ) {
+            let tempMoves = popped.moves.slice();
+            tempMoves.push(DIRECTION_UP);
+            queue.push({ x: popped.x, y: popped.y - 1, moves: tempMoves });
+        }
+        if (
+            popped.y + 1 >= 0 &&
+            popped.y + 1 < numOfColumns &&
+            mp[popped.y + 1][popped.x] !== 1
+        ) {
+            let tempMoves = popped.moves.slice();
+            tempMoves.push(DIRECTION_DOWN);
+            queue.push({ x: popped.x, y: popped.y + 1, moves: tempMoves });
+        }
+        return queue;
     }
 
     getMapX() {
@@ -163,7 +247,7 @@ class Ghost {
                 this.height
             );
         } else {
-            console.log("wrong type: pacmanFrames");
+            console.log("wrong type: ghostFrames");
         }
 
         canvasContext.restore();

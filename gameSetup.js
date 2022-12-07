@@ -25,10 +25,11 @@ let createNewPacman = () => {
 };
 
 let createGhosts = () => {
-    for (let i = 0; i < 1; i++) {
+    let ghosts = []
+    for (let i = 0; i < ghostCount; i++) {
         let newGhost = new Ghost (
-            9 * oneBlockSize + (i %2 === 0 ? 0 : 1) * oneBlockSize,
-            10 * oneBlockSize + (i %2 === 0 ? 0 : 1) * oneBlockSize,
+            9 * oneBlockSize + (i % 2 === 0 ? 0 : 1) * oneBlockSize,
+            10 * oneBlockSize + (i % 2 === 0 ? 0 : 1) * oneBlockSize,
             oneBlockSize,
             oneBlockSize,
             pacman.speed / 2,
@@ -38,8 +39,33 @@ let createGhosts = () => {
             116,
             6 + i
         )
+        ghosts.push(newGhost);
     }
+    return ghosts;
 }
+let drawRemainingLives = () => {
+    canvasContext.font = "20px Emulogic";
+    canvasContext.fillStyle = "white";
+    canvasContext.fillText("Lives: ", 220, oneBlockSize * (map.length + 1));
+    if (pacmanFrames instanceof HTMLImageElement) {
+    for (let i = 0; i < lives; i++) {
+        canvasContext.drawImage(
+            pacmanFrames,
+            2 * oneBlockSize,
+            0,
+            oneBlockSize,
+            oneBlockSize,
+            350 + i * oneBlockSize,
+            oneBlockSize * map.length + 2,
+            oneBlockSize,
+            oneBlockSize
+        );
+    }
+    } else {
+        console.log("wrong type: pacmanFrames");
+    }
+};
+
 
 const drawWalls = () => {
     for(let i = 0; i < map.length; i++) {
