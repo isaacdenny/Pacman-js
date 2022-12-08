@@ -56,15 +56,42 @@ const draw = () => {
     drawRemainingLives();
     pacman.draw();
 };
+let gameOver = () => {
+    drawGameOver();
+    clearInterval(gameInterval);
+}
+
+const checkForWin = () => {
+    for (let i = 0; i < map.length; i++) {
+        for (let j = 0; j < map[0].length; j++) {
+            if (map[i][j] === 2) {
+                return false; //still balls left
+            }
+        }
+    }
+    return true;
+};
+
+const winGame = () => {
+    drawWin()
+    clearInterval(gameInterval);
+};
 
 const update = () => {
     pacman.moveProcess();
-    ghostsMove();
     pacman.eat();
+    ghostsMove();
+
+    if (pacman.checkGhostCollision()) {
+        restartGame();
+    }
+    if (checkForWin()) {
+        winGame();
+    }
 };
 const gameLoop = () => {
-    update();
     draw();
+    update();
 };
 
 const gameInterval = setInterval(gameLoop, 1_000 / fps);

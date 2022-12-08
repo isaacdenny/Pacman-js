@@ -88,6 +88,15 @@ class Pacman {
     }
 
     checkGhostCollision() {
+        let hasCollided = false;
+        for (let i = 0; i < ghosts.length; i++) {
+            let ghost = ghosts[i];
+            if (ghost.getMapX() === this.getMapX() && ghost.getMapY() === this.getMapY()) {
+                hasCollided = true;
+                break;
+            }
+        }
+        return hasCollided;
     }
 
     changeDirectionIfPossible() {

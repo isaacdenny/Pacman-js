@@ -14,6 +14,28 @@ const drawFoods = () => {
     }
 };
 
+
+const drawGameOver = () => {
+    canvasContext.font = "20px Emulogic";
+    canvasContext.fillStyle = "white";
+    canvasContext.fillText("Game Over", 200, 200);
+};
+
+const drawWin = () => {
+    canvasContext.font = "20px Emulogic";
+    canvasContext.fillStyle = "white";
+    canvasContext.fillText("You Win!", 200, 200);
+}
+
+let restartGame = () => {
+    pacman = createNewPacman();
+    ghosts = createGhosts();
+    lives--;
+    if (lives <= 0) {
+        gameOver()
+    }
+}
+
 let createNewPacman = () => {
     return new Pacman(
         oneBlockSize,
